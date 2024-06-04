@@ -27,15 +27,14 @@ In order to generate the form, there are several arguments you need to pass:
 1. Your full name
 2. Your tax authorities file number (usually your ID number)
 3. Whether the assets you are trading are abroad (Valid values are `True` and `False`)
-4. The year for which you would like to generate the form
-5. The path to your orders `csv` file from Colmex Pro 
-6. The desired path of the output file (The tool currently supports `csv` and `pdf` file extensions only)
+4. The path to your orders `csv` file from Colmex Pro 
+5. The desired path of the output file (The tool currently supports `csv` and `pdf` file extensions only)
 
 In order to run the tool you can use this command from your terminal: \
-`python3 -m colmex_pro_to_form_1325.src [NAME] [FILE NUMBER] [ASSET ABROAD] [YEAR] [INPUT FILE] [OUTPUT FILE]`
+`python3 -m colmex_pro_to_form_1325.src [NAME] [FILE NUMBER] [ASSET ABROAD] [INPUT FILE] [OUTPUT FILE]`
 
 For example: \
-`python -m colmex_pro_to_form_1325.src 123456789 "ישראל ישראלי" True 2023 "/path/to/orders/file.csv" 
+`python -m colmex_pro_to_form_1325.src 123456789 "ישראל ישראלי" True "/path/to/orders/file.csv" 
 "/path/to/output/form_1325.pdf"`
 
 ---

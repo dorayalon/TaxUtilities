@@ -13,8 +13,7 @@ class ColmexProOrdersToForm1325DF:
     BUY = "B"
     SELL = "S"
 
-    def __init__(self, year: int, input_csv: str):
-        self.YEAR = year
+    def __init__(self, input_csv: str):
         self.INPUT_CSV = input_csv
 
     def get_shares(self, row) -> int:
@@ -196,13 +195,21 @@ class ColmexProOrdersToForm1325DF:
 
         return transformed_df
 
-    def run(self) -> pd.DataFrame:
+    @staticmethod
+    def _get_year(df: pd.DataFrame):
+        years = set(pd.to_datetime(df[Columns.TRADE_DATE]).dt.year)
+        if len(years) == 1:
+            return years.pop()
+        raise Exception("Error: Multiple years found in input file. Can only support files with orders from one year")
+
+    def run(self) -> tuple[pd.DataFrame, int]:
         """
         Get a form 1325 rows DataFrame from a csv with Colmex Pro orders data
         :return: A DataFrame with the form 1325 rows data
         """
         df = self.extract()  # Get a Dataframe with the Colmex Pro orders data
         if df is not None:
-            rates = BankOfIsraelRates.get_rates(self.YEAR, self.COIN)  # Get the currency rates
+            year = self._get_year(df)
+            rates = BankOfIsraelRates.get_rates(year, self.COIN)  # Get the currency rates
             transformed_df = self.transform(df, rates)  # Transform the Dataframe to a Dataframe in form 1325 format
-            return transformed_df
+            return transformed_df, year

@@ -8,7 +8,8 @@ import PyPDF2
 
 
 class Form1325DFToPDF:
-    def __init__(self, name: str, file_number: str, asset_abroad: bool, df: pd.DataFrame, output_path: str):
+    def __init__(self, year: int, name: str, file_number: str, asset_abroad: bool, df: pd.DataFrame, output_path: str):
+        self.YEAR = year
         self.NAME = name
         self.FILE_NUMBER = file_number
         self.ASSET_ABROAD = asset_abroad
@@ -266,7 +267,7 @@ class Form1325DFToPDF:
             'footer-right': '[page] of [topage]',
             "footer-font-size": "8",
             "footer-font-name": "Trebuchet",
-            "header-left": Heb.LEFT_HEADER,
+            "header-left": Heb.LEFT_HEADER.replace("[YEAR]", f"{self.YEAR}"),
             "header-font-size": "8",
             "header-font-name": "Trebuchet",
             "header-spacing": 6,
