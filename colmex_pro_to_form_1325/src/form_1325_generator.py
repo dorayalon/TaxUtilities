@@ -16,6 +16,7 @@ class _Form1325Generator:
         :return: A DataFrame with the Colmex Pro orders data
         """
         df = pd.read_csv(self.INPUT_FILE, index_col=False)
+        df = df.dropna(how='all')
         return df
 
     @staticmethod
