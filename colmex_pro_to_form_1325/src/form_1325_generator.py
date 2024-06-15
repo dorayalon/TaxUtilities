@@ -12,20 +12,11 @@ class _Form1325Generator:
 
     def _extract(self) -> pd.DataFrame:
         """
-        Get a DataFrame with the Colmex Pro orders data. We don't use pd.read_csv() because of the "Notes" column, which
-        is completely empty, and causes the DataFrame to be incorrectly read from the file
+        Get a DataFrame with the Colmex Pro orders data
         :return: A DataFrame with the Colmex Pro orders data
         """
-        with open(self.INPUT_FILE, newline="\r\n") as f:
-            data = f.readlines()
-            data = [  # Parse the rows
-                list(map(lambda col: col.replace('"', "").rstrip(" "), row.rstrip(",\r\n").split(",")))
-                for row in data if row.strip()
-            ]
-        if data:
-            df = pd.DataFrame(data[1:], columns=data[0])
-            return df
-        raise Exception(f"Failed to extract a DataFrame from {self.INPUT_FILE}")
+        df = pd.read_csv(self.INPUT_FILE, index_col=False)
+        return df
 
     @staticmethod
     def _get_year(df: pd.DataFrame) -> int:
