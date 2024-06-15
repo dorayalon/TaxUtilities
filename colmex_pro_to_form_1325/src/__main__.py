@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(__file__))
 
 from colmex_pro_orders_to_form_1325_df import ColmexProOrdersToForm1325DF
 from form_1325_df_to_pdf import Form1325DFToPDF
+from logger import logger
 
 
 class Form1325Generator:
@@ -43,10 +44,10 @@ class Form1325Generator:
         df, year = ColmexProOrdersToForm1325DF(self.INPUT_FILE).run()
         if self.OUTPUT_FORMAT == self.CSV_FORMAT:
             df.to_csv(self.OUTPUT_FILE, index=False, encoding='utf-8-sig')
-            print(f"File ready at: {self.OUTPUT_FILE}")
+            logger.info(f"File ready at: {self.OUTPUT_FILE}")
         elif self.OUTPUT_FORMAT == self.PDF_FORMAT:
             Form1325DFToPDF(year, self.NAME, self.FILE_NUMER, eval(self.ASSET_ABROAD), df, self.OUTPUT_FILE).run()
-            print(f"File ready at: {self.OUTPUT_FILE}")
+            logger.info(f"File ready at: {self.OUTPUT_FILE}")
 
 
 if __name__ == '__main__':
