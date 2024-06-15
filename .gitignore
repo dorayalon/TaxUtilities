@@ -154,3 +154,5 @@ cython_debug/
 
 # macOs files
 .DS_Store
+
+drafts/
