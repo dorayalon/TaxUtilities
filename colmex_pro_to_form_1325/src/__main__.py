@@ -1,56 +1,103 @@
+import argparse
 import os.path
 import sys
 
 sys.path.append(os.path.dirname(__file__))
 
-from colmex_pro_orders_to_form_1325_df import ColmexProOrdersToForm1325DF
-from form_1325_df_to_pdf import Form1325DFToPDF
+from config import Config
+from form_1325_generator import Form1325CSVGenerator, Form1325PDFGenerator
 from logger import logger
+from utilities import Utilities
 
 
-class Form1325Generator:
-    CSV_FORMAT = ".csv"
-    PDF_FORMAT = ".pdf"
+class Main:
+    EXTENSION_TO_CLASS_MAP = {Config.CSV: Form1325CSVGenerator, Config.PDF: Form1325PDFGenerator}
 
-    def __init__(self, name: str, file_number: str, asset_abroad: str, input_file: str, output_file: str):
-        self.NAME = name
-        self.FILE_NUMER = file_number
-        self.ASSET_ABROAD = asset_abroad
-        self.INPUT_FILE = input_file
-        self.OUTPUT_FILE = output_file
-        self.OUTPUT_FORMAT = os.path.splitext(self.OUTPUT_FILE)[1]
+    @staticmethod
+    def _parse_args():
+        """
+        Parse the command-line arguments
+        :return: A argparse.Namespace object
+        """
+        parser = argparse.ArgumentParser(description="Example class with command-line arguments")
 
-    def _validate_asset_abroad(self):
-        asset_abroad = self.ASSET_ABROAD.capitalize()
+        parser.add_argument("input_file", type=str, help="The CSV input file path")
+        parser.add_argument("output_file", type=str, help="The output file path")
+        parser.add_argument("--name", type=str, help="The name (for PDF output only)")
+        parser.add_argument("--file_number", type=str, help="The file number (for PDF output only)")
+        parser.add_argument("--asset_abroad", type=str, help="Whether the asset is abroad (for PDF output only)")
+
+        return parser.parse_args()
+
+    @staticmethod
+    def _validate_input_file(input_file: str):
+        """
+        Validate the input file: Check if it exists and if its file extension is CSV
+        """
+        if not Utilities.file_exists(input_file):
+            raise Exception(f"Input file not found: {input_file}")
+        input_file_extension = Utilities.get_file_extension(input_file)
+        if input_file_extension != Config.CSV:
+            raise Exception(f"Unsupported input file format: {input_file_extension}")
+
+    @staticmethod
+    def _validate_args(args: argparse.Namespace, output_file_extension: str):
+        """
+         Validate the command-line arguments: Make sure that when using PDF output file, all arguments are required,
+         and warn when the optional arguments are passed, but not required
+        """
+        if output_file_extension == Config.PDF:
+            if args.name is None or args.file_number is None or args.asset_abroad is None:
+                raise Exception("--name, --file_number, --asset_abroad are required when using PDF output file")
+        else:
+            if not (args.name is None and args.file_number is None and args.asset_abroad is None):
+                logger.warning("--name, --file_number, --asset_abroad are ignored when not using PDF output file")
+
+    @staticmethod
+    def _validate_asset_abroad(asset_abroad: str):
+        """
+        Validate the Asset Abroad: Can be True or False only
+        """
+        asset_abroad = asset_abroad.capitalize()
         if asset_abroad not in ("True", "False"):
             raise Exception("Valid values for asset abroad are only 'True', 'False'")
 
-    def _validate_output(self):
-        if self.OUTPUT_FORMAT.lower() not in (self.CSV_FORMAT, self.PDF_FORMAT):
-            raise Exception(f"Unsupported output format: {self.OUTPUT_FORMAT}")
+    @staticmethod
+    def _validate(args: argparse.Namespace, output_file_extension: str):
+        """
+        Make some validations
+        """
+        Main._validate_input_file(args.input_file)
+        Main._validate_args(args, output_file_extension)
+        if output_file_extension == Config.PDF:
+            Main._validate_asset_abroad(args.asset_abroad)
 
-    def _validate_input_file(self):
-        if not os.path.exists(self.INPUT_FILE):
-            raise Exception(f"Input file not found: {self.INPUT_FILE}")
-        input_file_extension = os.path.splitext(self.INPUT_FILE)[1]
-        if input_file_extension != self.CSV_FORMAT:
-            raise Exception(f"Unsupported input format: {input_file_extension}")
+    @staticmethod
+    def _get_generator(output_file_extension: str) -> type:
+        """
+        Get the correct generator class according to the output file extension
+        """
+        cls = Main.EXTENSION_TO_CLASS_MAP.get(output_file_extension)
+        if cls is None:
+            raise Exception(f"Unsupported output file format: {output_file_extension}")
+        return cls
 
-    def run(self):
-        self._validate_input_file()
-        self._validate_asset_abroad()
-        self._validate_output()
-
-        df, year = ColmexProOrdersToForm1325DF(self.INPUT_FILE).run()
-        if self.OUTPUT_FORMAT == self.CSV_FORMAT:
-            df.to_csv(self.OUTPUT_FILE, index=False, encoding='utf-8-sig')
-            logger.info(f"File ready at: {self.OUTPUT_FILE}")
-        elif self.OUTPUT_FORMAT == self.PDF_FORMAT:
-            Form1325DFToPDF(year, self.NAME, self.FILE_NUMER, eval(self.ASSET_ABROAD), df, self.OUTPUT_FILE).run()
-            logger.info(f"File ready at: {self.OUTPUT_FILE}")
+    @staticmethod
+    def run():
+        """
+        Run the app
+        """
+        try:
+            args = Main._parse_args()
+            output_file_extension = Utilities.get_file_extension(args.output_file)
+            Main._validate(args, output_file_extension)
+            cls = Main._get_generator(output_file_extension)
+            cls(**args.__dict__).run()
+            if Utilities.file_exists(args.output_file):
+                logger.info(f"Output file ready at: {args.output_file}")
+        except Exception as e:
+            logger.exception(e)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 6:
-        g = Form1325Generator(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
-        g.run()  # Run generator
+    Main.run()

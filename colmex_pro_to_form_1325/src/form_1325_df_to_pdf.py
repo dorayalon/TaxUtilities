@@ -241,7 +241,7 @@ class Form1325DFToPDF:
             """
 
     @staticmethod
-    def merge_pdfs(pdf_list, output_path):
+    def merge_pdfs(pdf_list: list, output_path: str):
         """
         Merge multiple PDF files
         :param pdf_list: A list with paths to PDF files

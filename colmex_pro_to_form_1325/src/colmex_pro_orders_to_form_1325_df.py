@@ -13,16 +13,14 @@ class ColmexProOrdersToForm1325DF:
     BUY = "B"
     SELL = "S"
 
-    def __init__(self, input_csv: str):
-        self.INPUT_CSV = input_csv
-
-    def get_shares(self, row) -> int:
+    @classmethod
+    def get_shares(cls, row) -> int:
         """
         Get the number of shares considering the side
         :param row: The row
         :return: The number of shares - positive for sell orders, negative for buy orders
         """
-        if row[Columns.SIDE] == self.SELL:
+        if row[Columns.SIDE] == cls.SELL:
             return int(row[Columns.SHARES])
         else:
             return -1 * int(row[Columns.SHARES])
@@ -49,7 +47,8 @@ class ColmexProOrdersToForm1325DF:
 
         return dfs
 
-    def _get_trade_dfs(self, df: pd.DataFrame) -> list[pd.DataFrame]:
+    @classmethod
+    def _get_trade_dfs(cls, df: pd.DataFrame) -> list[pd.DataFrame]:
         """
         Split the DataFrame to symbol DataFrames, and then to trade DataFrames
         :param df: The DataFrame
@@ -58,11 +57,12 @@ class ColmexProOrdersToForm1325DF:
         symbol_dfs = df.groupby([Columns.SYMBOL], sort=False)  # Split to DataFrames based on the symbol
         trade_dfs = []
         for key, symbol_df in symbol_dfs:
-            symbol_df[Columns.POSITION] = symbol_df.apply(self.get_shares, axis=1).cumsum()  # Update Position column
-            trade_dfs.extend(self._symbol_df_to_trade_dfs(symbol_df))  # Save the symbol's trade dfs to a list
+            symbol_df[Columns.POSITION] = symbol_df.apply(cls.get_shares, axis=1).cumsum()  # Update Position column
+            trade_dfs.extend(cls._symbol_df_to_trade_dfs(symbol_df))  # Save the symbol's trade dfs to a list
         return trade_dfs
 
-    def _trade_df_to_form1325_rows(self, df: pd.DataFrame, rates: dict) -> list[dict]:
+    @classmethod
+    def _trade_df_to_form1325_rows(cls, df: pd.DataFrame, rates: dict) -> list[dict]:
         """
         Transform the trade DataFrame to a list of rows in form 1325 format
         :param df: The trade DataFrame
@@ -81,8 +81,8 @@ class ColmexProOrdersToForm1325DF:
         df[Columns.QUANTITY] = df[Columns.SHARES]
 
         # Separate Buy and Sell transactions
-        buys = df[df[Columns.SIDE] == self.BUY].copy()
-        sells = df[df[Columns.SIDE] == self.SELL].copy()
+        buys = df[df[Columns.SIDE] == cls.BUY].copy()
+        sells = df[df[Columns.SIDE] == cls.SELL].copy()
 
         # Calculate amount including commissions
         buys[Columns.AMOUNT] = buys[Columns.QUANTITY] * buys[Columns.PRICE].astype(float) + commissions_and_fees
@@ -114,7 +114,7 @@ class ColmexProOrdersToForm1325DF:
                 amount_sell = sell[Columns.AMOUNT] * (shares_sold / sell[Columns.SHARES]) * sell_rate
                 amount_buy = buy[Columns.AMOUNT] * (shares_sold / buy[Columns.SHARES]) * buy_rate
                 amount_buy_adjusted = amount_buy * rate_change
-                profit_loss = self._get_profit_loss(amount_buy, amount_buy_adjusted, amount_sell)
+                profit_loss = cls._get_profit_loss(amount_buy, amount_buy_adjusted, amount_sell)
 
                 # Create a dictionary row in form 1325 format. Use Hebrew column headers
                 row = {
@@ -149,24 +149,8 @@ class ColmexProOrdersToForm1325DF:
         sign = math.copysign(1, amount_sell - amount_buy_adjusted)
         return sign * min(abs(amount_sell - amount_buy_adjusted), abs(amount_sell - amount_buy))
 
-    def extract(self) -> pd.DataFrame:
-        """
-        Get a DataFrame with the Colmex Pro orders data. We don't use pd.read_csv() because of the "Notes" column, which
-        is completely empty, and causes the DataFrame to be incorrectly read from the file
-        :return: A DataFrame with the Colmex Pro orders data
-        """
-        with open(self.INPUT_CSV, newline="\r\n") as f:
-            data = f.readlines()
-            data = [  # Parse the rows
-                list(map(lambda col: col.replace('"', "").rstrip(" "), row.rstrip(",\r\n").split(",")))
-                for row in data if row.strip()
-            ]
-        if data:
-            df = pd.DataFrame(data[1:], columns=data[0])
-            return df
-        raise Exception(f"Failed to extract a DataFrame from {self.INPUT_CSV}")
-
-    def transform(self, df: pd.DataFrame, rates: dict) -> pd.DataFrame:
+    @classmethod
+    def transform(cls, df: pd.DataFrame, rates: dict) -> pd.DataFrame:
         """
         Transform the Colmex Pro orders DataFrame to form 1325 DataFrame
         :param df: The Colmex Pro orders DataFrame
@@ -178,10 +162,10 @@ class ColmexProOrdersToForm1325DF:
         df[Columns.DATETIME] = pd.to_datetime(df[Columns.TRADE_DATE] + " " + df[Columns.EXEC_TIME], format=fmt)
         df = df.sort_values(by=[Columns.DATETIME, Columns.SYMBOL, Columns.PRICE])
 
-        trade_dfs = self._get_trade_dfs(df)  # Get a list of trade DataFrames
+        trade_dfs = cls._get_trade_dfs(df)  # Get a list of trade DataFrames
         form1325_rows = []
         for trade_df in trade_dfs:
-            trade_1325_rows = self._trade_df_to_form1325_rows(trade_df, rates)  # Get the form 1325 rows
+            trade_1325_rows = cls._trade_df_to_form1325_rows(trade_df, rates)  # Get the form 1325 rows
             form1325_rows.extend(trade_1325_rows)
 
         transformed_df = pd.DataFrame(form1325_rows)
@@ -197,21 +181,12 @@ class ColmexProOrdersToForm1325DF:
 
         return transformed_df
 
-    @staticmethod
-    def _get_year(df: pd.DataFrame):
-        years = set(pd.to_datetime(df[Columns.TRADE_DATE]).dt.year)
-        if len(years) == 1:
-            return years.pop()
-        raise Exception("Error: Multiple years found in input file. Can only support files with orders from one year")
-
-    def run(self) -> tuple[pd.DataFrame, int]:
+    @classmethod
+    def run(cls, df: pd.DataFrame, year: int) -> pd.DataFrame:
         """
         Get a form 1325 rows DataFrame from a csv with Colmex Pro orders data
         :return: A DataFrame with the form 1325 rows data
         """
-        df = self.extract()  # Get a Dataframe with the Colmex Pro orders data
-        if df is not None:
-            year = self._get_year(df)
-            rates = BankOfIsraelRates.get_rates(year, self.COIN)  # Get the currency rates
-            transformed_df = self.transform(df, rates)  # Transform the Dataframe to a Dataframe in form 1325 format
-            return transformed_df, year
+        rates = BankOfIsraelRates.get_rates(year, cls.COIN)  # Get the currency rates
+        transformed_df = cls.transform(df, rates)
+        return transformed_df
