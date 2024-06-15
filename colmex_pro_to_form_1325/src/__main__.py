@@ -38,7 +38,7 @@ class Main:
             raise Exception(f"Input file not found: {input_file}")
         input_file_extension = Utilities.get_file_extension(input_file)
         if input_file_extension != Config.CSV:
-            raise Exception(f"Unsupported input file format: {input_file_extension}")
+            raise Exception(f"Unsupported input file extension: {input_file_extension}")
 
     @staticmethod
     def _validate_args(args: argparse.Namespace, output_file_extension: str):
@@ -79,7 +79,7 @@ class Main:
         """
         cls = Main.EXTENSION_TO_CLASS_MAP.get(output_file_extension)
         if cls is None:
-            raise Exception(f"Unsupported output file format: {output_file_extension}")
+            raise Exception(f"Unsupported output file extension: {output_file_extension}")
         return cls
 
     @staticmethod
