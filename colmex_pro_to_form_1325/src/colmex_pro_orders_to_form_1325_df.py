@@ -161,8 +161,10 @@ class ColmexProOrdersToForm1325DF:
                 list(map(lambda col: col.replace('"', "").rstrip(" "), row.rstrip(",\r\n").split(",")))
                 for row in data if row.strip()
             ]
-        df = pd.DataFrame(data[1:], columns=data[0])
-        return df
+        if data:
+            df = pd.DataFrame(data[1:], columns=data[0])
+            return df
+        raise Exception(f"Failed to extract a DataFrame from {self.INPUT_CSV}")
 
     def transform(self, df: pd.DataFrame, rates: dict) -> pd.DataFrame:
         """
