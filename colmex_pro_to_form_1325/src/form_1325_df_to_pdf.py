@@ -3,7 +3,7 @@ import uuid
 
 import pandas as pd
 import pdfkit
-import PyPDF2
+import pypdf
 
 from form_1325_hebrew_text import Form1325HebrewText as Heb
 
@@ -247,13 +247,14 @@ class Form1325DFToPDF:
         :param pdf_list: A list with paths to PDF files
         :param output_path: The output path of the merged PDF file
         """
-        pdf_merger = PyPDF2.PdfMerger()
+        # pdf_merger = PyPDF2.PdfMerger()
+        pdf_writer = pypdf.PdfWriter()
 
         for pdf in pdf_list:
-            pdf_merger.append(pdf)
+            pdf_writer.append(pdf)
 
         with open(output_path, "wb") as output_file:
-            pdf_merger.write(output_file)
+            pdf_writer.write(output_file)
 
     def _html_to_pdf(self, html: str):
         """

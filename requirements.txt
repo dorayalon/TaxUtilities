@@ -1,4 +1,6 @@
 pandas~=2.2.1
 pdfkit~=1.0.0
-pypdf2~=3.0.1
+pypdf~=4.2.0
 requests~=2.32.3
+pytest~=8.2.2
+urllib3==1.26.19
