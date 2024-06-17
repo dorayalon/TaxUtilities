@@ -83,9 +83,10 @@ class Main:
         return cls
 
     @staticmethod
-    def run():
+    def run() -> bool:
         """
         Run the app
+        :return: True for success, False otherwise
         """
         try:
             args = Main._parse_args()
@@ -95,8 +96,10 @@ class Main:
             cls(**args.__dict__).run()
             if Utilities.file_exists(args.output_file):
                 logger.info(f"Output file ready at: {args.output_file}")
+                return True
         except Exception as e:
             logger.exception(e)
+        return False
 
 
 if __name__ == '__main__':
