@@ -19,7 +19,7 @@ class Main:
         Parse the command-line arguments
         :return: A argparse.Namespace object
         """
-        parser = argparse.ArgumentParser(description="Example class with command-line arguments")
+        parser = argparse.ArgumentParser()
 
         parser.add_argument("input_file", type=str, help="The CSV input file path")
         parser.add_argument("output_file", type=str, help="The output file path")
