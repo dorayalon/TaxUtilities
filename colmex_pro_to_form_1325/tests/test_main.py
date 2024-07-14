@@ -1,4 +1,6 @@
 import os
+import time
+
 import pandas as pd
 import pytest
 from colmex_pro_to_form_1325.src.__main__ import Main
@@ -90,7 +92,10 @@ def test_parse_csv_to_pdf(input_csv, tmpdir_func, monkeypatch, caplog):
         '--asset_abroad', 'True'
     ])
 
-    assert Main.run() is True
+    print(f"Output file in: {output_file}")
+    result = Main.run()
+    time.sleep(3)
+    assert result is True
     assert os.path.exists(output_file)
 
 
