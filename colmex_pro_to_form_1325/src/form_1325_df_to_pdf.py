@@ -278,6 +278,7 @@ class Form1325DFToPDF:
         # Create the temp PDF file with a uuid as its name
         parent_dir = os.path.dirname(os.path.dirname(__file__))
         temp_pdf = f"{parent_dir}/temp/{uuid.uuid4()}.pdf"
+        print(f"Temp PDF: {temp_pdf}")
         # Generate the temp PDF file with a css file for a good-looking output
         if pdfkit.from_string(html, temp_pdf, options=options, css=f"{parent_dir}/resources/form_1325.css", verbose=True):
             # Add the explanations PDF page to the temp PDF file
