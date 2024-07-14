@@ -279,7 +279,7 @@ class Form1325DFToPDF:
         parent_dir = os.path.dirname(os.path.dirname(__file__))
         temp_pdf = f"{parent_dir}/temp/{uuid.uuid4()}.pdf"
         # Generate the temp PDF file with a css file for a good-looking output
-        if pdfkit.from_string(html, temp_pdf, options=options, css=f"{parent_dir}/resources/form_1325.css"):
+        if pdfkit.from_string(html, temp_pdf, options=options, css=f"{parent_dir}/resources/form_1325.css", verbose=True):
             # Add the explanations PDF page to the temp PDF file
             explanations_pdf = f"{parent_dir}/resources/1325_explanations.pdf"
             self.merge_pdfs([temp_pdf, explanations_pdf], self.OUTPUT_PATH)
