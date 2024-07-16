@@ -6,7 +6,6 @@ import pdfkit
 import pypdf
 
 from form_1325_hebrew_text import Form1325HebrewText as Heb
-from logger import logger
 
 
 class Form1325DFToPDF:
@@ -277,16 +276,12 @@ class Form1325DFToPDF:
             "footer-spacing": 1,
         }
         # Create the temp PDF file with a uuid as its name
-        parent_dir = os.path.dirname(os.path.dirname(__file__))
-        # temp_pdf = f"{parent_dir}/temp/{uuid.uuid4()}.pdf"
+        resources_dir = f"{os.path.dirname(os.path.dirname(__file__))}/resources"
         temp_pdf = f"/tmp/{uuid.uuid4()}.pdf"
-        logger.info(f"Temp PDF: {temp_pdf}")
         # Generate the temp PDF file with a css file for a good-looking output
-        css_file = f"{parent_dir}/resources/form_1325.css"
-        if pdfkit.from_string(html, temp_pdf, options=options, css=css_file, verbose=True):
+        if pdfkit.from_string(html, temp_pdf, options=options, css=f"{resources_dir}/form_1325.css"):
             # Add the explanations PDF page to the temp PDF file
-            explanations_pdf = f"{parent_dir}/resources/1325_explanations.pdf"
-            self.merge_pdfs([temp_pdf, explanations_pdf], self.OUTPUT_PATH)
+            self.merge_pdfs([temp_pdf, f"{resources_dir}/1325_explanations.pdf"], self.OUTPUT_PATH)
             os.remove(temp_pdf)  # Remove the temp file
 
     def run(self):
