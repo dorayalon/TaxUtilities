@@ -22,9 +22,10 @@ jobs:
 
     - name: Install system dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y wget xz-utils fontconfig libfreetype6 libjpeg8-dev zlib1g-dev libxext6 libxrender1 libssl1.1 xfonts-base xfonts-75dpi && \
-        sudo apt-get clean
+        sudo apt-get update && \
+        sudo apt-get install -y wget xz-utils fontconfig libfreetype6 libjpeg8-dev zlib1g-dev libxext6 libxrender1 \
+        libssl1.1 xfonts-base xfonts-75dpi && \
+        sudo apt-get clean && \
         sudo rm -rf /var/lib/apt/lists/*
 
     - name: Set up Python ${{ matrix.python-version }}
@@ -43,9 +44,6 @@ jobs:
       run: |
         python3.10 -m pip install --no-cache-dir --upgrade pip
         if [ -f requirements.txt ]; then python3.10 -m pip install -r requirements.txt; fi
-
-    - name: Adjust directory permissions
-      run: chmod -R 755 .
 
     - name: Run tests
       run: |
