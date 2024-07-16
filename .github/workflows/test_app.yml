@@ -44,6 +44,9 @@ jobs:
         python3.10 -m pip install --no-cache-dir --upgrade pip
         if [ -f requirements.txt ]; then python3.10 -m pip install -r requirements.txt; fi
 
+    - name: Adjust directory permissions
+      run: chmod -R 755 .
+
     - name: Run tests
       run: |
         python3.10 -m pytest -v -s
