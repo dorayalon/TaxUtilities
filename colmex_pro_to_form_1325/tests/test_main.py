@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 from colmex_pro_to_form_1325.src.__main__ import Main
 from colmex_pro_to_form_1325.src.form_1325_hebrew_text import Form1325HebrewText as Heb
+from colmex_pro_to_form_1325.src.logger import logger
 import logging
 from itertools import product
 
@@ -30,7 +31,7 @@ def tmpdir_func(tmpdir):
     for filename in files_to_remove:
         file_path = tmpdir.join(filename)
         if file_path.check():
-            print(f"Deleting {file_path}")
+            logger.info(f"Deleting {file_path}")
             os.remove(str(file_path))
 
 
@@ -92,7 +93,7 @@ def test_parse_csv_to_pdf(input_csv, tmpdir_func, monkeypatch, caplog):
         '--asset_abroad', 'True'
     ])
 
-    print(f"Output file in: {output_file}")
+    logger.info(f"Output file in: {output_file}")
     result = Main.run()
     time.sleep(3)
     assert result is True
@@ -120,7 +121,7 @@ def test_pdf_missing_params_combinations(tmpdir_func, monkeypatch, caplog, input
 
     parameter_combinations = list(filter(lambda params: any(p is None for p in params), parameter_combinations))
     for name, file_number, asset_abroad in parameter_combinations:
-        print(f"Current params: {name}, {file_number}, {asset_abroad}")
+        logger.info(f"Current params: {name}, {file_number}, {asset_abroad}")
         args = ['app.py', input_csv, str(output_file)]
         if name is not None:
             args.extend(['--name', name])
@@ -143,7 +144,7 @@ def test_csv_missing_params_combinations(tmpdir_func, monkeypatch, caplog, input
 
     parameter_combinations = list(filter(lambda params: any(p is not None for p in params), parameter_combinations))
     for name, file_number, asset_abroad in parameter_combinations:
-        print(f"Current params: {name}, {file_number}, {asset_abroad}")
+        logger.info(f"Current params: {name}, {file_number}, {asset_abroad}")
         args = ['app.py', input_csv, str(output_file)]
         if name is not None:
             args.extend(['--name', name])
