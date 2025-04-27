@@ -225,7 +225,7 @@ class Form1325DFToPDF:
             <body>
                 <br/><br/>
                 <h3>{Heb.TITLE_1}</h3>
-                <h1>{Heb.cite(Heb.TITLE_2)}</h1>
+                <h1>{Heb.cite(Heb.TITLE_2.replace("[YEAR]", f"{self.YEAR}"))}</h1>
                 <p class='title3'>{Heb.cite(Heb.TITLE_3)}</p>
                 {self._personal_details_table()}
                 <br/>
@@ -281,7 +281,7 @@ class Form1325DFToPDF:
         # Generate the temp PDF file with a css file for a good-looking output
         if pdfkit.from_string(html, temp_pdf, options=options, css=f"{resources_dir}/form_1325.css"):
             # Add the explanations PDF page to the temp PDF file
-            self.merge_pdfs([temp_pdf, f"{resources_dir}/1325_explanations.pdf"], self.OUTPUT_PATH)
+            self.merge_pdfs([temp_pdf, f"{resources_dir}/1325_explanations_{self.YEAR}.pdf"], self.OUTPUT_PATH)
             os.remove(temp_pdf)  # Remove the temp file
 
     def run(self):
